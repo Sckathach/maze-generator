@@ -1,29 +1,21 @@
+(* ocamlc -o maze unix.cma main.ml -I +unix *)
 open Random;;
 open Unix;;
 
 Random.init (int_of_float (Unix.time ()))
 
 type surrounding = Right | Left | Up | Down
-
+type stack = (int * int) list
 type cell = {
     position: int * int;
     mutable walls: bool array;
     mutable neighbours: surrounding list    (* Unvisited neighbours *)
 }
 
-type stack = (int * int) list
-
 let init_check x y n = let a = Array.make_matrix n n true in a.(x).(y) <- false ; a
 
 let n = ref 10
-let x_start = ref 0
-let y_start = ref 0
-
-let () =
-    try n := int_of_string (Sys.argv.(1)) with Invalid_argument _ -> () ;
-    try x_start := int_of_string (Sys.argv.(2)) with Invalid_argument _ -> () ;
-    try y_start := int_of_string (Sys.argv.(3)) with Invalid_argument _ -> ()
-
+let () = try n := int_of_string (Sys.argv.(1)) with Invalid_argument _ -> ()
 
 let init n =
     let a = Array.make_matrix n n {position = (0, 0); walls = [|true; true; true; true |]; neighbours = []} in
@@ -44,10 +36,8 @@ let init n =
     a
 
 let plateau = init !n
-let start = (!x_start, !y_start)
-let check = init_check (fst start) (snd start) !n
-let stack : stack = start :: []
-
+let check = init_check 0 0 !n
+let stack : stack = (0, 0) :: []
 let fill = "  "
 
 let w = function
@@ -83,9 +73,6 @@ let print_plateau a =
                 done;
                 print_string (!lh ^ "\n")
 
-
-
-
 let get_random_neighbour l =
     let a = Array.of_list l in
         let n = Array.length a in
@@ -109,17 +96,6 @@ let coord_of_surroundings x y =
         | Left :: q -> aux ((x-1, y) :: acc) q
     in aux [] plateau.(x).(y).neighbours
 
-
-
-let print_stack (s : stack) =
-    let rec aux = function
-        [] -> print_string "]\n"
-        | (x, y) :: q -> print_string "(" ; print_int x ; print_string "; " ; print_int y ; print_string "); " ; aux q
-    in print_string "[" ; aux s
-
-let print_tuple = function
-    (x, y) -> print_string "(" ; print_int x ; print_string ", " ; print_int y ; print_string ")"
-
 let rec create_maze = function
     [] -> ()
     | (x, y) :: q as z ->
@@ -136,10 +112,8 @@ let rec create_maze = function
                                 | (1, 0) -> plateau.(a).(b).walls.(w Right) <- false
                                 | (-1, 0) -> plateau.(x).(y).walls.(w Right) <- false
                         end;
-                        create_maze ((a, b) :: z);
-                    end;
-        end;;
+                        create_maze ((a, b) :: z)
+                    end
+        end
 
-
-create_maze stack;
-print_plateau plateau
+let () = create_maze stack; print_plateau plateau
