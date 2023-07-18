@@ -5,7 +5,7 @@
 </p>
 
 ## Use 
-Directly use the `maze` executable or build it from `main.ml` with the ocamlc:
+Directly use the `maze` executable or build it from `main.ml` with ocamlc:
 ```sh 
 ocamlc -o maze unix.cma main.ml -I +unix
 ```
